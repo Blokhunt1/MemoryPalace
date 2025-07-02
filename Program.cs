@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
 // Configure data protection for reverse proxy scenarios
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo("/app/data/keys"))
@@ -17,7 +19,7 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
 {
     options.Domain = builder.Configuration["Auth0:Domain"];
     options.ClientId = builder.Configuration["Auth0:ClientId"];
-    //options.CallbackPath = "/callback";
+    options.CallbackPath = "/callback";
 });
 
 
@@ -39,7 +41,8 @@ var app = builder.Build();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-    KnownProxies = { }
+    ForwardLimit = 1,
+    RequireHeaderSymmetry = false
 });
 
 // Configure cookies for HTTPS behind reverse proxy
