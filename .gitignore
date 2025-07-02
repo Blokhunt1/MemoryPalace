@@ -354,6 +354,9 @@ app.log
 Screenshot.zip
 uploads/
 
+# SSL certificates and volumes
+certbot/
+
 # IDE and editor files
 .vscode/
 .idea/

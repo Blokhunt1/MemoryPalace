@@ -20,28 +20,48 @@ services:
     networks:
       - memory-palace-network
 
+  certbot-init:
+    image: certbot/certbot
+    entrypoint: /bin/sh
+    command: -c 'test -d /etc/letsencrypt/live/${DOMAIN} || certbot certonly --standalone -d ${DOMAIN} -d www.${DOMAIN} -m ${EMAIL} --agree-tos --non-interactive'
+    ports: 
+      - "80:80"
+    volumes:
+      - cert_volume:/etc/letsencrypt
+    environment:
+      - DOMAIN=${DOMAIN}
+      - EMAIL=${EMAIL}
+
   nginx:
-    image: nginx:1.21-alpine
-    restart: unless-stopped
+    image: nginx:alpine
+    entrypoint: /bin/sh
+    command: -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx:/etc/nginx/conf.d
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - cert_volume:/etc/letsencrypt
+    environment:
+      - DOMAIN=${DOMAIN}
     networks:
       - memory-palace-network
     depends_on:
-      - memory-palace-app
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+      certbot-init:
+        condition: service_completed_successfully
+      memory-palace-app:
+        condition: service_started
+    restart: unless-stopped
 
   certbot:
     image: certbot/certbot
+    entrypoint: /bin/sh
+    command: -c 'trap exit TERM; while :; do certbot renew; sleep 24h & wait $${!}; done;'
+    depends_on:
+      nginx:
+        condition: service_started
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+      - cert_volume:/etc/letsencrypt
     restart: unless-stopped
 
 networks:
@@ -54,4 +74,6 @@ volumes:
   memory_palace_uploads:
     driver: local
   memory_palace_logs:
+    driver: local
+  cert_volume:
     driver: local

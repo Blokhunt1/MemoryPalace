@@ -83,26 +83,20 @@ docker run -d \
   memory-palace-app
 ```
 
-#### Option 4: Simple HTTP Start (Quick Test) 
+#### Option 4: Production with HTTPS (blok-nijmegen.nl) 🔒
 ```bash
-# Start with HTTP only (no SSL complexity)
-./start-simple.sh
-
-# Available at: http://blok-nijmegen.nl
-```
-
-#### Option 5: Production with HTTPS (blok-nijmegen.nl) 🔒
-```bash
-# Simple one-command SSL setup (using proven docker-nginx-certbot method)
-./init-letsencrypt.sh
-
-# Then start all services
+# One command - automatic SSL certificate generation and HTTPS setup
 docker-compose up -d
 
-# Your site will be available at:
+# That's it! Your site will be available at:
 # https://blok-nijmegen.nl
 # https://www.blok-nijmegen.nl
 ```
+
+**How it works:**
+1. `certbot-init` gets SSL certificates using standalone mode (port 80)
+2. `nginx` starts with HTTPS configuration after certificates exist
+3. `certbot` renews certificates automatically every 24 hours
 
 **Prerequisites for HTTPS setup:**
 - Domain `blok-nijmegen.nl` must point to your server's IP
@@ -257,17 +251,14 @@ The application includes a complete NGINX reverse proxy setup with automatic SSL
 
 #### **🚀 One-Command Deployment:**
 ```bash
-# SSL certificate setup with dummy certificates for initial start
-./init-letsencrypt.sh
-
-# Start all services with SSL
+# Complete HTTPS setup with automatic SSL certificates
 docker-compose up -d
 ```
 
 #### **📋 What This Setup Includes:**
 - **NGINX Reverse Proxy**: Routes traffic from blok-nijmegen.nl to the app
 - **Automatic SSL Certificates**: Let's Encrypt certificates for HTTPS
-- **Auto-Renewal**: Certificates automatically renew every 12 hours
+- **Auto-Renewal**: Certificates automatically renew every 24 hours
 - **HTTP to HTTPS Redirect**: All HTTP traffic automatically redirects to HTTPS
 - **Blazor SignalR Support**: Proper WebSocket proxying for real-time features
 - **Large File Upload Support**: 100MB max file size for memory palace zip files
@@ -276,52 +267,8 @@ docker-compose up -d
 ```
 Internet → NGINX (80/443) → Memory Palace App (8080)
              ↓
-        Let's Encrypt SSL
+        Let's Encrypt SSL (certbot-init → nginx)
 ```
-
-#### **📝 Configuration Files:**
-- `nginx/nginx.conf`: NGINX reverse proxy configuration (auto-managed)
-- `nginx/nginx-initial.conf`: HTTP-only config for initial startup
-- `nginx/nginx-ssl.conf`: Full HTTPS config with redirects
-- `docker-compose.yml`: Multi-service orchestration
-- `init-letsencrypt.sh`: Automatic SSL certificate setup script
-- `start-production.sh`: Interactive production deployment script
-
-#### **🔧 Manual SSL Management:**
-```bash
-# Check certificate status
-docker-compose exec certbot certbot certificates
-
-# Force certificate renewal
-docker-compose exec certbot certbot renew --force-renewal
-docker-compose exec nginx nginx -s reload
-
-# View certificate expiration
-openssl s_client -connect blok-nijmegen.nl:443 -servername blok-nijmegen.nl < /dev/null 2>/dev/null | openssl x509 -noout -dates
-```
-
-#### **🔧 Troubleshooting:**
-```bash
-# Check if all services are running
-docker-compose ps
-
-# View nginx logs
-docker-compose logs nginx
-
-# View app logs
-docker-compose logs memory-palace-app
-
-# Restart services
-docker-compose restart
-
-# Force rebuild and restart
-docker-compose down && docker-compose up -d --build
-```
-
-**Common Issues:**
-- **NGINX startup crash**: Fixed by using staged configuration (HTTP first, then HTTPS)
-- **Certificate errors**: Ensure domain DNS points to your server before running setup
-- **Port conflicts**: Make sure ports 80 and 443 are not used by other services
 
 ## 🤝 Contributing
 
