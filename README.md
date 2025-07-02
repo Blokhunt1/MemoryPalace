@@ -93,11 +93,13 @@ docker run -d \
 
 #### Option 5: Production with HTTPS (blok-nijmegen.nl) 🔒
 ```bash
-# Start with HTTP first, then add SSL
-./start-simple.sh
-./quick-setup.sh
+# Simple one-command SSL setup (using proven docker-nginx-certbot method)
+./init-letsencrypt.sh
 
-# That's it! Your site will be available at:
+# Then start all services
+docker-compose up -d
+
+# Your site will be available at:
 # https://blok-nijmegen.nl
 # https://www.blok-nijmegen.nl
 ```
@@ -255,11 +257,11 @@ The application includes a complete NGINX reverse proxy setup with automatic SSL
 
 #### **🚀 One-Command Deployment:**
 ```bash
-# Interactive setup with safety checks
-./start-production.sh
+# SSL certificate setup with dummy certificates for initial start
+./init-letsencrypt.sh
 
-# Or direct setup (advanced users)
-./init-letsencrypt.sh && docker-compose up -d
+# Start all services with SSL
+docker-compose up -d
 ```
 
 #### **📋 What This Setup Includes:**
