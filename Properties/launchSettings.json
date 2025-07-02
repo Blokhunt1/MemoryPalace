@@ -1,12 +1,20 @@
 {
   "profiles": {
-    "MemoryPalaceApp": {
+    "MemoryPalaceAppDev": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:59149;http://localhost:59150;https://blok-nijmegen.nl"
+      "applicationUrl": "https://localhost:59149;http://localhost:59150"
+    },
+    "MemoryPalaceAppProd": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      },
+      "applicationUrl": "http://localhost:8080"
     }
   }
 }
