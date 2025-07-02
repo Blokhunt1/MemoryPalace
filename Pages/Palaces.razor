@@ -1,0 +1,126 @@
+@page "/palaces"
+@using MemoryPalaceApp.Models
+@using MemoryPalaceApp.Services
+@inject MemoryPalaceService MemoryPalaceService
+@inject NavigationManager Navigation
+
+<PageTitle>Memory Palaces</PageTitle>
+
+<div class="container-fluid mt-4">
+    <h3 class="text-warning mb-4">🏰 Your Memory Realms</h3>
+
+@if (memoryPalaces == null)
+{
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (memoryPalaces.Count == 0)
+{
+    <div class="alert alert-info">
+        <h4>No Memory Palaces Found</h4>
+        <p>You haven't created any memory palaces yet.</p>
+        <a href="/upload" class="btn btn-warning">🏗️ Create Your First Palace</a>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var palace in memoryPalaces)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@palace.Name</h5>
+                        <p class="card-text">
+                            <strong>Subject:</strong> @palace.Subject<br />
+                            <strong>Loci Count:</strong> @palace.PointsOfLoci.Count<br />
+                            <strong>Created:</strong> @palace.CreatedAt.ToString("MMM dd, yyyy")
+                        </p>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-warning btn-sm" @onclick="() => NavigateToWalkthrough(palace.Id)">
+                                🚶 Walk Through
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm" @onclick="() => NavigateToEdit(palace.Id)">
+                                📝 Edit Table
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => ConfirmDelete(palace)">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+</div>
+
+@if (showDeleteConfirm && palaceToDelete != null)
+{
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the memory palace "<strong>@palaceToDelete.Name</strong>"?</p>
+                    <p class="text-danger">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="DeletePalace">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop show"></div>
+}
+
+@code {
+    private List<MemoryPalace>? memoryPalaces;
+    private bool showDeleteConfirm = false;
+    private MemoryPalace? palaceToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        memoryPalaces = await MemoryPalaceService.GetAllMemoryPalacesAsync();
+    }
+
+    private void NavigateToWalkthrough(int palaceId)
+    {
+        Navigation.NavigateTo($"/walkthrough/{palaceId}");
+    }
+
+    private void NavigateToEdit(int palaceId)
+    {
+        Navigation.NavigateTo($"/palace/{palaceId}/edit");
+    }
+
+    private void ConfirmDelete(MemoryPalace palace)
+    {
+        palaceToDelete = palace;
+        showDeleteConfirm = true;
+    }
+
+    private void CancelDelete()
+    {
+        palaceToDelete = null;
+        showDeleteConfirm = false;
+    }
+
+    private async Task DeletePalace()
+    {
+        if (palaceToDelete != null)
+        {
+            await MemoryPalaceService.DeleteMemoryPalaceAsync(palaceToDelete.Id);
+            memoryPalaces = await MemoryPalaceService.GetAllMemoryPalacesAsync();
+        }
+        
+        palaceToDelete = null;
+        showDeleteConfirm = false;
+    }
+}

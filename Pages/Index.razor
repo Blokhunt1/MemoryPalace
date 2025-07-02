@@ -1,0 +1,47 @@
+@page "/"
+@using MemoryPalaceApp.Services
+@inject MemoryPalaceService MemoryPalaceService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Memory Palace</PageTitle>
+
+<div class="home-container" style="margin: -2rem; margin-top: -90px; padding-top: 0;">
+    @if (backgroundPalace != null && backgroundPalace.PointsOfLoci.Any())
+    {
+        <div class="background-slideshow" id="backgroundSlideshow">
+            @foreach (var loci in backgroundPalace.PointsOfLoci.Take(10))
+            {
+                <img src="@loci.ImagePath" alt="Background" />
+            }
+        </div>
+    }
+    
+    <div class="home-overlay"></div>
+    
+    <div class="home-content">
+        <h1 class="home-title">Memory Palace</h1>
+        <p class="home-subtitle">Forge Your Mind's Greatest Sanctuary</p>
+        
+        <div class="home-buttons">
+            <a href="/upload" class="wow-button">Create Palace</a>
+            <a href="/palaces" class="wow-button secondary">Enter Realms</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Models.MemoryPalace? backgroundPalace;
+
+    protected override async Task OnInitializedAsync()
+    {
+        backgroundPalace = await MemoryPalaceService.GetRandomMemoryPalaceAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && backgroundPalace != null && backgroundPalace.PointsOfLoci.Any())
+        {
+            await JSRuntime.InvokeVoidAsync("startBackgroundSlideshow");
+        }
+    }
+}

@@ -1,0 +1,177 @@
+@page "/walkthrough/{PalaceId:int}"
+@using MemoryPalaceApp.Models
+@using MemoryPalaceApp.Services
+@inject MemoryPalaceService MemoryPalaceService
+
+<PageTitle>Walkthrough - @(memoryPalace?.Name ?? "Loading...")</PageTitle>
+
+@if (memoryPalace == null)
+{
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="walkthrough-container">
+        <!-- Image Section -->
+        <div class="image-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h3 class="text-warning">@memoryPalace.Name</h3>
+                    <p class="text-muted">@memoryPalace.Subject</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-outline-warning" @onclick="PreviousLoci" disabled="@(currentIndex == 0)">
+                        ← Previous
+                    </button>
+                    <button class="btn btn-outline-warning" @onclick="NextLoci" disabled="@(currentIndex >= memoryPalace.PointsOfLoci.Count - 1)">
+                        Next →
+                    </button>
+                </div>
+            </div>
+
+            @if (currentLoci != null)
+            {
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5>Loci @(currentIndex + 1) of @memoryPalace.PointsOfLoci.Count</h5>
+                        <p class="mb-0">@currentLoci.Location</p>
+                    </div>
+                    <div class="card-body text-center d-flex align-items-center justify-content-center">
+                        @if (!string.IsNullOrEmpty(currentLoci.ImagePath))
+                        {
+                            <img src="@currentLoci.ImagePath" class="img-fluid" alt="@currentLoci.Location" style="max-height: 70vh; max-width: 100%;" />
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                No image available for this loci
+                            </div>
+                        }
+                    </div>
+                </div>
+                
+                <div class="progress mt-3">
+                    <div class="progress-bar bg-warning" role="progressbar" 
+                         style="width: @(((double)(currentIndex + 1) / memoryPalace.PointsOfLoci.Count) * 100)%"
+                         aria-valuenow="@(currentIndex + 1)" 
+                         aria-valuemin="0" 
+                         aria-valuemax="@memoryPalace.PointsOfLoci.Count">
+                        @(currentIndex + 1) / @memoryPalace.PointsOfLoci.Count
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Information Sections -->
+        <div class="info-sections">
+            <!-- Mode Toggle -->
+            <div class="mode-toggle">
+                <button class="toggle-btn @(showImageInfo ? "active" : "")" @onclick="() => ToggleMode(true)">
+                    Image Information
+                </button>
+                <button class="toggle-btn @(!showImageInfo ? "active" : "")" @onclick="() => ToggleMode(false)">
+                    Actual Information
+                </button>
+            </div>
+
+            @if (currentLoci != null)
+            {
+                <EditForm Model="@currentLoci" OnValidSubmit="@SaveLoci">
+                    <!-- Image Information Section -->
+                    <div class="info-section @(showImageInfo ? "" : "hidden")">
+                        <h6>Image Information</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <InputText class="form-control" @bind-Value="currentLoci.Location" placeholder="Describe the location in the image" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Image Key</label>
+                            <InputText class="form-control" @bind-Value="currentLoci.ImageKey" placeholder="Visual memory cue" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Loci</label>
+                            <InputText class="form-control" @bind-Value="currentLoci.Category" placeholder="Loci category or type" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Image Value</label>
+                            <InputTextArea class="form-control" rows="4" @bind-Value="currentLoci.ImageValue" placeholder="Memory association with the image" />
+                        </div>
+                    </div>
+
+                    <!-- Actual Information Section -->
+                    <div class="info-section @(!showImageInfo ? "" : "hidden")">
+                        <h6>Actual Information</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <InputText class="form-control" @bind-Value="currentLoci.Category" placeholder="Information category" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Info Key</label>
+                            <InputText class="form-control" @bind-Value="currentLoci.WrittenKey" placeholder="Key term or concept" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Info Value</label>
+                            <InputTextArea class="form-control" rows="6" @bind-Value="currentLoci.WrittenValue" placeholder="Detailed information, facts, or data" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 mt-3">Save Changes</button>
+                </EditForm>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int PalaceId { get; set; }
+    
+    private MemoryPalace? memoryPalace;
+    private int currentIndex = 0;
+    private bool showImageInfo = true;
+    private Loci? currentLoci => memoryPalace?.PointsOfLoci.ElementAtOrDefault(currentIndex);
+
+    protected override async Task OnInitializedAsync()
+    {
+        memoryPalace = await MemoryPalaceService.GetMemoryPalaceAsync(PalaceId);
+    }
+
+    private void NextLoci()
+    {
+        if (memoryPalace != null && currentIndex < memoryPalace.PointsOfLoci.Count - 1)
+        {
+            currentIndex++;
+        }
+    }
+
+    private void PreviousLoci()
+    {
+        if (currentIndex > 0)
+        {
+            currentIndex--;
+        }
+    }
+
+    private void ToggleMode(bool imageInfo)
+    {
+        showImageInfo = imageInfo;
+    }
+
+    private async Task SaveLoci()
+    {
+        if (currentLoci != null)
+        {
+            await MemoryPalaceService.UpdateLociAsync(currentLoci);
+        }
+    }
+}
