@@ -22,6 +22,19 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
     options.CallbackPath = "/callback";
 });
 
+// Configure OpenIdConnect options for reverse proxy
+builder.Services.Configure<Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectOptions>(Auth0Constants.AuthenticationScheme, options =>
+{
+    options.UsePkce = true;
+    options.SaveTokens = true;
+    options.Events.OnRedirectToIdentityProvider = context =>
+    {
+        // Ensure HTTPS in redirect URI
+        context.ProtocolMessage.RedirectUri = context.ProtocolMessage.RedirectUri?.Replace("http://", "https://");
+        return Task.CompletedTask;
+    };
+});
+
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
@@ -58,7 +71,8 @@ app.Use((context, next) =>
 app.UseCookiePolicy(new CookiePolicyOptions
 {
     MinimumSameSitePolicy = SameSiteMode.Lax,
-    Secure = CookieSecurePolicy.SameAsRequest
+    Secure = CookieSecurePolicy.Always,
+    HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always
 });
 
 if (!app.Environment.IsDevelopment())
