@@ -37,12 +37,21 @@ builder.Services.AddScoped<TokenProvider>();
 
 var app = builder.Build();
 
-// Configure forwarded headers for reverse proxy
+// Configure forwarded headers for reverse proxy (MUST be before authentication)
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost,
     ForwardLimit = 1,
-    RequireHeaderSymmetry = false
+    RequireHeaderSymmetry = false,
+    KnownProxies = { },
+    KnownNetworks = { }
+});
+
+// Force HTTPS for Auth0 callback URL generation
+app.Use((context, next) =>
+{
+    context.Request.Scheme = "https";
+    return next();
 });
 
 // Configure cookies for HTTPS behind reverse proxy
