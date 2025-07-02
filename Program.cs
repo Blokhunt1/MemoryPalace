@@ -3,8 +3,15 @@ using MemoryPalaceApp.Data;
 using MemoryPalaceApp.Services;
 using Auth0.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure data protection for reverse proxy scenarios
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/data/keys"))
+    .SetApplicationName("MemoryPalaceApp");
 
 builder.Services.AddAuth0WebAppAuthentication(options =>
 {
@@ -30,8 +37,15 @@ var app = builder.Build();
 // Configure forwarded headers for reverse proxy
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | 
-                      Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    KnownProxies = { }
+});
+
+// Configure cookies for HTTPS behind reverse proxy
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.Lax,
+    Secure = CookieSecurePolicy.SameAsRequest
 });
 
 if (!app.Environment.IsDevelopment())
