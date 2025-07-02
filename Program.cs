@@ -1,11 +1,22 @@
 using Microsoft.EntityFrameworkCore;
 using MemoryPalaceApp.Data;
 using MemoryPalaceApp.Services;
+using Auth0.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddAuth0WebAppAuthentication(options =>
+{
+    options.Domain = builder.Configuration["Auth0:Domain"];
+    options.ClientId = builder.Configuration["Auth0:ClientId"];
+});
+
+
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<AuthenticationStateProvider, Auth0AuthenticationStateProvider>();
 
 builder.Services.AddDbContext<MemoryPalaceContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -22,6 +33,9 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStaticFiles();
 app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapBlazorHub();
