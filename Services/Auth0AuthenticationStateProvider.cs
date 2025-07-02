@@ -1,28 +1,27 @@
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Server;
 using System.Security.Claims;
 
 namespace MemoryPalaceApp.Services
 {
-    public class Auth0AuthenticationStateProvider : RevalidatingServerAuthenticationStateProvider
+    public class Auth0AuthenticationStateProvider : AuthenticationStateProvider
     {
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly ILogger<Auth0AuthenticationStateProvider> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public Auth0AuthenticationStateProvider(
-            ILoggerFactory loggerFactory,
-            IServiceScopeFactory scopeFactory) : base(loggerFactory)
+        public Auth0AuthenticationStateProvider(IHttpContextAccessor httpContextAccessor)
         {
-            _scopeFactory = scopeFactory;
-            _logger = loggerFactory.CreateLogger<Auth0AuthenticationStateProvider>();
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        protected override TimeSpan RevalidateInterval => TimeSpan.FromMinutes(30);
-
-        protected override Task<bool> ValidateAuthenticationStateAsync(
-            AuthenticationState authenticationState, CancellationToken cancellationToken)
+        public override Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            return Task.FromResult(authenticationState.User?.Identity?.IsAuthenticated ?? false);
+            var httpContext = _httpContextAccessor.HttpContext;
+            
+            if (httpContext?.User?.Identity?.IsAuthenticated == true)
+            {
+                return Task.FromResult(new AuthenticationState(httpContext.User));
+            }
+
+            return Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
         }
     }
 }
