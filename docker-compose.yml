@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  memory-palace-app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persist database
+      - memory_palace_data:/app/data
+      # Persist uploaded images
+      - memory_palace_uploads:/app/wwwroot/uploads
+      # Optional: Persist logs
+      - memory_palace_logs:/app/logs
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/memorypalace.db
+    restart: unless-stopped
+
+volumes:
+  memory_palace_data:
+    driver: local
+  memory_palace_uploads:
+    driver: local
+  memory_palace_logs:
+    driver: local

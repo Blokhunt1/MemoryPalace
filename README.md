@@ -61,11 +61,26 @@ dotnet restore
 dotnet run
 ```
 
-#### Option 2: Docker
+#### Option 2: Docker (Simple)
 ```bash
-# Build and run with Docker
+# Build and run with Docker (data will be lost on container restart)
 docker build -t memory-palace-app .
 docker run -p 8080:8080 memory-palace-app
+```
+
+#### Option 3: Docker with Persistent Data (Recommended)
+```bash
+# Use docker-compose for persistent data
+docker-compose up -d
+
+# Or manually with volumes
+docker build -t memory-palace-app .
+docker run -d \
+  -p 8080:8080 \
+  -v memory_palace_data:/app/data \
+  -v memory_palace_uploads:/app/wwwroot/uploads \
+  --name memory-palace \
+  memory-palace-app
 ```
 
 ### 📱 Usage
@@ -169,6 +184,42 @@ The application includes full Docker support with:
 - Optimized image size
 - Production-ready configuration
 - Easy deployment
+
+### **📀 Data Persistence**
+
+**⚠️ Important:** By default, Docker containers are ephemeral - all data is lost when the container stops.
+
+#### **What Needs Persistence:**
+- **SQLite Database** (`/app/data/memorypalace.db`) - All memory palaces and loci
+- **Uploaded Images** (`/app/wwwroot/uploads/`) - User-uploaded zip file contents
+- **Application Logs** (`/app/logs/`) - Runtime logs (optional)
+
+#### **Recommended Setup:**
+```bash
+# Use docker-compose (easiest)
+docker-compose up -d
+
+# Or manual volumes
+docker run -d \
+  -p 8080:8080 \
+  -v memory_palace_data:/app/data \
+  -v memory_palace_uploads:/app/wwwroot/uploads \
+  -v memory_palace_logs:/app/logs \
+  --name memory-palace \
+  memory-palace-app
+```
+
+#### **Volume Management:**
+```bash
+# List volumes
+docker volume ls
+
+# Backup data
+docker run --rm -v memory_palace_data:/data -v $(pwd):/backup ubuntu tar czf /backup/memory-palace-backup.tar.gz /data
+
+# Restore data
+docker run --rm -v memory_palace_data:/data -v $(pwd):/backup ubuntu tar xzf /backup/memory-palace-backup.tar.gz -C /
+```
 
 ## 🤝 Contributing
 

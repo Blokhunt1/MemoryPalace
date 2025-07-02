@@ -17,4 +17,8 @@ RUN dotnet publish "MemoryPalaceApp.csproj" -c Release -o /app/publish /p:UseApp
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# Create directories for persistent data
+RUN mkdir -p /app/data /app/logs
+
 ENTRYPOINT ["dotnet", "MemoryPalaceApp.dll"]
