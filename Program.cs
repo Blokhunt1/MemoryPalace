@@ -31,6 +31,7 @@ builder.Services.AddDbContext<MemoryPalaceContext>(options =>
 
 builder.Services.AddScoped<MemoryPalaceService>();
 builder.Services.AddScoped<ImageService>();
+builder.Services.AddScoped<TokenProvider>();
 
 var app = builder.Build();
 
