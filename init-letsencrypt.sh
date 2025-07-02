@@ -34,7 +34,11 @@ docker-compose run --rm --entrypoint "\
     -subj '/CN=localhost'" certbot
 echo
 
-echo "### Starting nginx ..."
+echo "### Ensuring HTTP-only configuration for certificate generation ..."
+cp nginx/nginx-initial.conf nginx/nginx.conf
+echo
+
+echo "### Starting nginx with HTTP-only configuration ..."
 docker-compose up --force-recreate -d nginx
 echo
 
@@ -71,5 +75,15 @@ docker-compose run --rm --entrypoint "\
     --force-renewal" certbot
 echo
 
-echo "### Reloading nginx ..."
+echo "### Switching to SSL configuration ..."
+cp nginx/nginx-ssl.conf nginx/nginx.conf
+echo
+
+echo "### Reloading nginx with SSL configuration ..."
 docker-compose exec nginx nginx -s reload
+
+echo "### Setup complete! ✅"
+echo "Your site is now available at:"
+echo "  - https://blok-nijmegen.nl"
+echo "  - https://www.blok-nijmegen.nl"
+echo "  - HTTP requests will automatically redirect to HTTPS"

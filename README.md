@@ -85,7 +85,10 @@ docker run -d \
 
 #### Option 4: Production with HTTPS (blok-nijmegen.nl) 🔒
 ```bash
-# ONE COMMAND SETUP with automatic SSL certificates
+# SIMPLE ONE-COMMAND SETUP with automatic SSL certificates
+./start-production.sh
+
+# Or manual setup:
 ./init-letsencrypt.sh && docker-compose up -d
 
 # That's it! Your site will be available at:
@@ -246,7 +249,10 @@ The application includes a complete NGINX reverse proxy setup with automatic SSL
 
 #### **🚀 One-Command Deployment:**
 ```bash
-# Initialize SSL certificates and start all services
+# Interactive setup with safety checks
+./start-production.sh
+
+# Or direct setup (advanced users)
 ./init-letsencrypt.sh && docker-compose up -d
 ```
 
@@ -266,9 +272,12 @@ Internet → NGINX (80/443) → Memory Palace App (8080)
 ```
 
 #### **📝 Configuration Files:**
-- `nginx/nginx.conf`: NGINX reverse proxy configuration
+- `nginx/nginx.conf`: NGINX reverse proxy configuration (auto-managed)
+- `nginx/nginx-initial.conf`: HTTP-only config for initial startup
+- `nginx/nginx-ssl.conf`: Full HTTPS config with redirects
 - `docker-compose.yml`: Multi-service orchestration
 - `init-letsencrypt.sh`: Automatic SSL certificate setup script
+- `start-production.sh`: Interactive production deployment script
 
 #### **🔧 Manual SSL Management:**
 ```bash
@@ -282,6 +291,29 @@ docker-compose exec nginx nginx -s reload
 # View certificate expiration
 openssl s_client -connect blok-nijmegen.nl:443 -servername blok-nijmegen.nl < /dev/null 2>/dev/null | openssl x509 -noout -dates
 ```
+
+#### **🔧 Troubleshooting:**
+```bash
+# Check if all services are running
+docker-compose ps
+
+# View nginx logs
+docker-compose logs nginx
+
+# View app logs
+docker-compose logs memory-palace-app
+
+# Restart services
+docker-compose restart
+
+# Force rebuild and restart
+docker-compose down && docker-compose up -d --build
+```
+
+**Common Issues:**
+- **NGINX startup crash**: Fixed by using staged configuration (HTTP first, then HTTPS)
+- **Certificate errors**: Ensure domain DNS points to your server before running setup
+- **Port conflicts**: Make sure ports 80 and 443 are not used by other services
 
 ## 🤝 Contributing
 
