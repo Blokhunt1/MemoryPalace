@@ -9,9 +9,15 @@ namespace MemoryPalaceApp.Pages
     {
         public async Task OnGet(string redirectUri = "/")
         {
+            var returnUrl = string.IsNullOrEmpty(redirectUri) ? "/" : redirectUri;
+            
             var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
-                .WithRedirectUri(redirectUri ?? "/")
+                .WithRedirectUri(returnUrl)
                 .Build();
+
+            // Use HTTPS since NGINX handles SSL termination
+            var scheme = HttpContext.Request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? "https";
+            authenticationProperties.RedirectUri = $"{scheme}://{HttpContext.Request.Host}/callback";
 
             await HttpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
         }
