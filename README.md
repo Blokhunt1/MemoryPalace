@@ -83,13 +83,19 @@ docker run -d \
   memory-palace-app
 ```
 
-#### Option 4: Production with HTTPS (blok-nijmegen.nl) 🔒
+#### Option 4: Simple HTTP Start (Quick Test) 
 ```bash
-# SIMPLE ONE-COMMAND SETUP with automatic SSL certificates
-./start-production.sh
+# Start with HTTP only (no SSL complexity)
+./start-simple.sh
 
-# Or manual setup:
-./init-letsencrypt.sh && docker-compose up -d
+# Available at: http://blok-nijmegen.nl
+```
+
+#### Option 5: Production with HTTPS (blok-nijmegen.nl) 🔒
+```bash
+# Start with HTTP first, then add SSL
+./start-simple.sh
+./quick-setup.sh
 
 # That's it! Your site will be available at:
 # https://blok-nijmegen.nl
