@@ -3,8 +3,8 @@ version: '3.8'
 services:
   memory-palace-app:
     build: .
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     volumes:
       # Persist database
       - memory_palace_data:/app/data
@@ -15,7 +15,38 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/memorypalace.db
+      - ASPNETCORE_URLS=http://+:8080
     restart: unless-stopped
+    networks:
+      - memory-palace-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    restart: unless-stopped
+    networks:
+      - memory-palace-network
+    depends_on:
+      - memory-palace-app
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    restart: unless-stopped
+
+networks:
+  memory-palace-network:
+    driver: bridge
 
 volumes:
   memory_palace_data:

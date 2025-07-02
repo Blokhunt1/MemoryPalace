@@ -83,6 +83,21 @@ docker run -d \
   memory-palace-app
 ```
 
+#### Option 4: Production with HTTPS (blok-nijmegen.nl) 🔒
+```bash
+# ONE COMMAND SETUP with automatic SSL certificates
+./init-letsencrypt.sh && docker-compose up -d
+
+# That's it! Your site will be available at:
+# https://blok-nijmegen.nl
+# https://www.blok-nijmegen.nl
+```
+
+**Prerequisites for HTTPS setup:**
+- Domain `blok-nijmegen.nl` must point to your server's IP
+- Ports 80 and 443 must be open and available
+- Server must be publicly accessible from the internet
+
 ### 📱 Usage
 
 1. **Create Palace**: Upload a zip file with images on the `/upload` page
@@ -184,6 +199,8 @@ The application includes full Docker support with:
 - Optimized image size
 - Production-ready configuration
 - Easy deployment
+- **NGINX reverse proxy with automatic SSL certificates**
+- **One-command HTTPS setup for production**
 
 ### **📀 Data Persistence**
 
@@ -219,6 +236,51 @@ docker run --rm -v memory_palace_data:/data -v $(pwd):/backup ubuntu tar czf /ba
 
 # Restore data
 docker run --rm -v memory_palace_data:/data -v $(pwd):/backup ubuntu tar xzf /backup/memory-palace-backup.tar.gz -C /
+```
+
+## 🔒 HTTPS Production Setup
+
+### **Automatic SSL with Let's Encrypt**
+
+The application includes a complete NGINX reverse proxy setup with automatic SSL certificate generation using Let's Encrypt and Certbot.
+
+#### **🚀 One-Command Deployment:**
+```bash
+# Initialize SSL certificates and start all services
+./init-letsencrypt.sh && docker-compose up -d
+```
+
+#### **📋 What This Setup Includes:**
+- **NGINX Reverse Proxy**: Routes traffic from blok-nijmegen.nl to the app
+- **Automatic SSL Certificates**: Let's Encrypt certificates for HTTPS
+- **Auto-Renewal**: Certificates automatically renew every 12 hours
+- **HTTP to HTTPS Redirect**: All HTTP traffic automatically redirects to HTTPS
+- **Blazor SignalR Support**: Proper WebSocket proxying for real-time features
+- **Large File Upload Support**: 100MB max file size for memory palace zip files
+
+#### **🏗️ Architecture:**
+```
+Internet → NGINX (80/443) → Memory Palace App (8080)
+             ↓
+        Let's Encrypt SSL
+```
+
+#### **📝 Configuration Files:**
+- `nginx/nginx.conf`: NGINX reverse proxy configuration
+- `docker-compose.yml`: Multi-service orchestration
+- `init-letsencrypt.sh`: Automatic SSL certificate setup script
+
+#### **🔧 Manual SSL Management:**
+```bash
+# Check certificate status
+docker-compose exec certbot certbot certificates
+
+# Force certificate renewal
+docker-compose exec certbot certbot renew --force-renewal
+docker-compose exec nginx nginx -s reload
+
+# View certificate expiration
+openssl s_client -connect blok-nijmegen.nl:443 -servername blok-nijmegen.nl < /dev/null 2>/dev/null | openssl x509 -noout -dates
 ```
 
 ## 🤝 Contributing
