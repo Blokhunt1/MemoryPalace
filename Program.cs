@@ -20,10 +20,6 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
     options.Domain = builder.Configuration["Auth0:Domain"];
     options.ClientId = builder.Configuration["Auth0:ClientId"];
     options.CallbackPath = "/callback";
-})
-.WithAccessToken(options =>
-{
-    options.Audience = builder.Configuration["Auth0:Audience"];
 });
 
 // Configure cookie authentication
