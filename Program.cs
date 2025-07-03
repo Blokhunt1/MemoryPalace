@@ -78,12 +78,12 @@ app.Use((context, next) =>
 });
 
 // Configure cookies for HTTPS behind reverse proxy
-app.UseCookiePolicy(new CookiePolicyOptions
-{
-    MinimumSameSitePolicy = SameSiteMode.Lax,
-    Secure = CookieSecurePolicy.Always,
-    HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always
-});
+// app.UseCookiePolicy(new CookiePolicyOptions
+// {
+//     MinimumSameSitePolicy = SameSiteMode.Lax,
+//     Secure = CookieSecurePolicy.Always,
+//     HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always
+// });
 
 if (!app.Environment.IsDevelopment())
 {
