@@ -1,8 +1,18 @@
 @page "/"
 @namespace MemoryPalaceApp.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using MemoryPalaceApp.Models
+@using Microsoft.AspNetCore.Authentication
 @{
     Layout = "_Layout";
+
+    var tokens = new InitialApplicationState
+    {
+        AccessToken = await HttpContext.GetTokenAsync("access_token"),
+        IdToken = await HttpContext.GetTokenAsync("id_token"),
+        RefreshToken = await HttpContext.GetTokenAsync("refresh_token"),
+    };
 }
 
-<component type="typeof(App)" render-mode="ServerPrerendered" />
+<component param-InitialState="tokens" type="typeof(App)" render-mode="ServerPrerendered" />
+

@@ -13,7 +13,7 @@ services:
       # Optional: Persist logs
       - memory_palace_logs:/app/logs
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/memorypalace.db
       - ASPNETCORE_URLS=http://+:8080
     restart: unless-stopped
