@@ -17,7 +17,7 @@ A stunning .NET 8 Blazor Server application for creating and managing memory pal
 - **Automatic Organization**: Images automatically converted into sequential loci
 - **Smart Processing**: Supports JPG, PNG, GIF, BMP, WebP formats
 - **Instant Walkthrough**: Navigate directly to walkthrough after creation
-
+test
 ### 🚶 **Advanced Walkthrough System**
 - **Two-Column Layout**: Image display + information panels
 - **Toggle Modes**: Switch between Image Information and Actual Information
